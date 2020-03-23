@@ -76,7 +76,7 @@
                Windows2012r2=0ce900e3a255d57a2
                
 AMI ID RedHat Linux = https://access.redhat.com/solutions/15356
-AMI ID Debian = https://wiki.debian.org/Cloud/AmazonEC2Image/Stretch]
+AMI ID Debian = https://wiki.debian.org/Cloud/AmazonEC2Image/Stretch
 AMI ID CentOS = https://wiki.centos.org/Cloud/AWS
 AMI ID openSUSE = https://news.opensuse.org/2016/01/19/opensuse-makes-the-leap-to-the-public-cloud/
 AMI ID Ubuntu = https://cloud-images.ubuntu.com/locator/ec2/

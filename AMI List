@@ -1,3 +1,4 @@
+   Windows 2008r2 e 2012r2: 
           us-east-1:
                Windows2008r2=05053a58f18d79165
                Windows2012r2=066663db63b3aa675
@@ -73,3 +74,9 @@
            cn-northwest-1:
                Windows2008r2=006c99da93a40e535
                Windows2012r2=0ce900e3a255d57a2
+               
+[URL=https://access.redhat.com/solutions/15356]AMI ID RedHat Linux[/URL]
+[URL=https://wiki.debian.org/Cloud/AmazonEC2Image/Stretch]AMI ID Debian[/URL]
+[URL=https://wiki.centos.org/Cloud/AWS]AMI ID CentOS[/URL]
+[URL=https://news.opensuse.org/2016/01/19/opensuse-makes-the-leap-to-the-public-cloud/]AMI ID openSUSE[/URL]
+[URL=https://cloud-images.ubuntu.com/locator/ec2/]AMI ID Ubuntu[/URL]

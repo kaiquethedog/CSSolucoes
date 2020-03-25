@@ -1,0 +1,591 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "KeyName": {
+            "Description": "Nome de um Keypair EC2 existente",
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "ConstraintDescription": "Can contain only ASCII characters."
+        },
+        "InstanceType": {
+            "Description": "WebServer EC2 instance type",
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues": [
+                "t1.micro",
+                "t2.nano",
+                "t2.micro",
+                "t2.small",
+                "t2.medium",
+                "t2.large",
+                "m1.small",
+                "m1.medium",
+                "m1.large",
+                "m1.xlarge",
+                "m2.xlarge",
+                "m2.2xlarge",
+                "m2.4xlarge",
+                "m3.medium",
+                "m3.large",
+                "m3.xlarge",
+                "m3.2xlarge",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m4.4xlarge",
+                "m4.10xlarge",
+                "c1.medium",
+                "c1.xlarge",
+                "c3.large",
+                "c3.xlarge",
+                "c3.2xlarge",
+                "c3.4xlarge",
+                "c3.8xlarge",
+                "c4.large",
+                "c4.xlarge",
+                "c4.2xlarge",
+                "c4.4xlarge",
+                "c4.8xlarge",
+                "g2.2xlarge",
+                "g2.8xlarge",
+                "r3.large",
+                "r3.xlarge",
+                "r3.2xlarge",
+                "r3.4xlarge",
+                "r3.8xlarge",
+                "i2.xlarge",
+                "i2.2xlarge",
+                "i2.4xlarge",
+                "i2.8xlarge",
+                "d2.xlarge",
+                "d2.2xlarge",
+                "d2.4xlarge",
+                "d2.8xlarge",
+                "hi1.4xlarge",
+                "hs1.8xlarge",
+                "cr1.8xlarge",
+                "cc2.8xlarge",
+                "cg1.4xlarge"
+            ],
+            "ConstraintDescription": "must be a valid EC2 instance type."
+        }
+    },
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "7532e28f-af91-4971-a270-6eb7e8905778": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 240,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": [],
+                "isassociatedwith": [
+                    "27c44b8c-4c93-4808-b53e-db2b6daca006",
+                    "f8923a16-74a8-4d9f-8d6b-018b06aaa209"
+                ]
+            },
+            "f8923a16-74a8-4d9f-8d6b-018b06aaa209": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 60,
+                    "y": 90
+                },
+                "z": 1,
+                "embeds": []
+            }
+        }
+    },
+    "Resources": {
+        "EC2Debian": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSRegionArch2AMI",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        {
+                            "Fn::FindInMap": [
+                                "AWSInstanceType2Arch",
+                                {
+                                    "Ref": "InstanceType"
+                                },
+                                "Arch"
+                            ]
+                        }
+                    ]
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -xe\n",
+                                "apt-get update\n",
+                                "apt-get install -y python-pip apache2 bind9\n",
+                                "pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+                                "# Install the files and packages from the metadata\n",
+                                "/usr/local/bin/cfn-init -v ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource EC2Debian ",
+                                "         --configsets InstallAndRun ",
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "# Signal the status from cfn-init\n",
+                                "/usr/local/bin/cfn-signal -e $? ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource EC2Debian ",
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n"
+                            ]
+                        ]
+                    }
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "EC2Security"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "InstallAndRun": [
+                            "Install"
+                        ]
+                    },
+                    "Install": {
+                        "files": {
+                            "/var/www/html/index.html": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "<html>\n",
+                                            "<title>Apache2 On</title>\n",
+                                            "<h1>Apache2 Funcionando perfeitamente</h1>\n",
+                                            "</html>"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000600",
+                                "owner": "www-data",
+                                "group": "www-data"
+                            },
+                            "/etc/bind/db.darede.br" : {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                        "$TTL 604800\n",
+                                        "@  IN  SOA darede.br   root.darede.br. (\n",
+                                        "  2\n",
+                                        "  604800\n",
+                                        "  86400\n",
+                                        "  2419200\n",
+                                        "  604800)\n",
+                                        "@   IN  NS  dns.darede.br.\n",
+                                        "@   IN  A   127.0.0.1\n",
+                                        "dns  IN  A  127.0.0.1\n"
+                                        ]
+                                    ]
+                            },
+                                "mode": "000400",
+                                "owner": "bind",
+                                "group": "bind"
+                            },
+                            "/etc/bind/named.conf.options": {
+                                "content": {
+                                    "Fn::Join":[
+                                        "",
+                                        [
+                                        "options {\n",
+                                        "directory \"/var/cache/bind\";\n",
+                                        "recursion yes;\n",
+                                        "allow-recursion { any; };\n",
+                                        "allow-query { any; };\n",
+                                        "forward only;\n",
+                                        "forwarders { 8.8.8.8; 8.8.4.4; };\n",
+                                        "auth-nxdomain no;\n",
+                                        "dnssec-validation no;\n",
+                                        "};"
+                                        ]
+                                        ]
+                                },
+                                "mode": "000400",
+                                "owner": "bind",
+                                "group": "bind"
+                            },
+                            "/etc/bind/named.conf.local": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                        "zone \"darede.br\" {\n",
+                                        "type master;\n",
+                                        "file \"/etc/bind/db.darede.br\"; \n",
+                                        "};"
+                                        ]
+                                        ]
+                                },
+                                "mode": "000400",
+                                "owner": "bind",
+                                "group": "bind"  
+                            },
+                            "/etc/cfn/cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000400",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.EC2Debian.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=/usr/local/bin/cfn-init -v ",
+                                            "         --stack ",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "         --resource EC2Debian ",
+                                            "         --configsets InstallAndRun ",
+                                            "         --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n",
+                                            "runas=root\n"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000400",
+                                "owner": "root",
+                                "group": "root"
+                            }
+                        },
+                        "services": {
+                            "sysvinit": {
+                                "apache2": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true"
+                                },
+                                "bind9": {
+                                    "enabled": "true",
+                                    "ensureRunning": "true"
+                                }
+                            }
+                        }
+                    },
+                    "AWS::CloudFormation::Designer": {
+                        "id": "bf506fee-8bfc-41b3-885b-6bd4dcd5ee4d"
+                    }
+                },
+                "AWS::CloudFormation::Designer": {
+                    "id": "7532e28f-af91-4971-a270-6eb7e8905778"
+                }
+            }
+        },
+        "EC2Security": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Liberar portas dos servicos instalados",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "udp",
+                        "FromPort": "53",
+                        "ToPort": "80",
+                        "CidrIp": "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "f8923a16-74a8-4d9f-8d6b-018b06aaa209"
+                }
+            }
+        }
+    },
+    "Mappings": {
+        "AWSInstanceType2Arch": {
+            "t1.micro": {
+                "Arch": "HVM64"
+            },
+            "t2.nano": {
+                "Arch": "HVM64"
+            },
+            "t2.micro": {
+                "Arch": "HVM64"
+            },
+            "t2.small": {
+                "Arch": "HVM64"
+            },
+            "t2.medium": {
+                "Arch": "HVM64"
+            },
+            "t2.large": {
+                "Arch": "HVM64"
+            },
+            "m1.small": {
+                "Arch": "HVM64"
+            },
+            "m1.medium": {
+                "Arch": "HVM64"
+            },
+            "m1.large": {
+                "Arch": "HVM64"
+            },
+            "m1.xlarge": {
+                "Arch": "HVM64"
+            },
+            "m2.xlarge": {
+                "Arch": "HVM64"
+            },
+            "m2.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "m2.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "m3.medium": {
+                "Arch": "HVM64"
+            },
+            "m3.large": {
+                "Arch": "HVM64"
+            },
+            "m3.xlarge": {
+                "Arch": "HVM64"
+            },
+            "m3.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "m4.large": {
+                "Arch": "HVM64"
+            },
+            "m4.xlarge": {
+                "Arch": "HVM64"
+            },
+            "m4.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "m4.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "m4.10xlarge": {
+                "Arch": "HVM64"
+            },
+            "c1.medium": {
+                "Arch": "HVM64"
+            },
+            "c1.xlarge": {
+                "Arch": "HVM64"
+            },
+            "c3.large": {
+                "Arch": "HVM64"
+            },
+            "c3.xlarge": {
+                "Arch": "HVM64"
+            },
+            "c3.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "c3.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "c3.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "c4.large": {
+                "Arch": "HVM64"
+            },
+            "c4.xlarge": {
+                "Arch": "HVM64"
+            },
+            "c4.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "c4.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "c4.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "g2.2xlarge": {
+                "Arch": "HVMG2"
+            },
+            "g2.8xlarge": {
+                "Arch": "HVMG2"
+            },
+            "r3.large": {
+                "Arch": "HVM64"
+            },
+            "r3.xlarge": {
+                "Arch": "HVM64"
+            },
+            "r3.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "r3.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "r3.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "i2.xlarge": {
+                "Arch": "HVM64"
+            },
+            "i2.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "i2.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "i2.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "d2.xlarge": {
+                "Arch": "HVM64"
+            },
+            "d2.2xlarge": {
+                "Arch": "HVM64"
+            },
+            "d2.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "d2.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "hi1.4xlarge": {
+                "Arch": "HVM64"
+            },
+            "hs1.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "cr1.8xlarge": {
+                "Arch": "HVM64"
+            },
+            "cc2.8xlarge": {
+                "Arch": "HVM64"
+            }
+        },
+        "AWSRegionArch2AMI": {
+            "us-east-1": {
+                "HVM64": "ami-066027b63b44ebc0a",
+                "HVMG2": "ami-0ea51afb2084a5bf3"
+            },
+            "us-east-2": {
+                "HVM64": "ami-09887484cc0721114",
+                "HVMG2": "ami-0c8f04a4e82d45248"
+            },
+            "us-west-1": {
+                "HVM64": "ami-05b1b0e2065a73a53",
+                "HVMG2": "ami-0413e0d0fc9173aed"
+            },
+            "us-west-2": {
+                "HVM64": "ami-0d270a69ac13b22c3",
+                "HVMG2": "ami-0b2a776780bc56851"
+            },
+            "eu-west-1": {
+                "HVM64": "ami-079b9207facfcaf0e",
+                "HVMG2": "ami-04e1a4e612eedbbc3"
+            },
+            "eu-west-2": {
+                "HVM64": "ami-0746bb5dcdb5f08fe",
+                "HVMG2": "ami-0b4b1178457b3a06c"
+            },
+            "eu-west-3": {
+                "HVM64": "ami-0f4c84f7511a7b98e",
+                "HVMG2": "ami-08516a90c447806d8"
+            },
+            "eu-central-1": {
+                "HVM64": "ami-09415feedc2d22008",
+                "HVMG2": "ami-023e1f91c848fc49d"
+            },
+            "ap-northeast-1": {
+                "HVM64": "ami-0d1a6c2b848d23a6d",
+                "HVMG2": "ami-09de4ee1721cb8f29"
+            },
+            "ap-northeast-2": {
+                "HVM64": "ami-00df969d08a3ea730",
+                "HVMG2": "ami-0fcb3bb296f15b982"
+            },
+            "ap-southeast-1": {
+                "HVM64": "ami-0e13f5fb9f9f3c104",
+                "HVMG2": "ami-0e7f0bfc03fb01aef"
+            },
+            "ap-southeast-2": {
+                "HVM64": "ami-0d63d6457a180078e",
+                "HVMG2": "ami-0778a46755a9c389d"
+            },
+            "ap-south-1": {
+                "HVM64": "ami-09b1626b27596815f",
+                "HVMG2": "ami-0c046658d5b68c1af"
+            },
+            "sa-east-1": {
+                "HVM64": "ami-091adbf53613eeef1",
+                "HVMG2": "ami-0a75c46ee538159e8"
+            },
+            "ca-central-1": {
+                "HVM64": "ami-09ff1197737556c58",
+                "HVMG2": "ami-054e5b309c4dca528"
+            }
+        }
+    }
+}

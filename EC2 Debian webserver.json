@@ -7,7 +7,7 @@
             "ConstraintDescription": "Can contain only ASCII characters."
         },
         "InstanceType": {
-            "Description": "Tipo de instância do EC2",
+            "Description": "Tipo de inst?ncia do EC2",
             "Type": "String",
             "Default": "t2.micro",
             "AllowedValues": [
@@ -66,7 +66,7 @@
                 "cc2.8xlarge",
                 "cg1.4xlarge"
             ],
-            "ConstraintDescription": "Deve ser um tipo válido de instância ec2."
+            "ConstraintDescription": "Deve ser um tipo v?lido de inst?ncia ec2."
         },
         "SiteSource": {
             "Description": "URL do codigo fonte do site",
@@ -446,12 +446,11 @@
                                 "sudo apt-get install -y python-pip apache2\n",
                                 "sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
                                 "sudo rm /var/www/html/* \n",
-                                "sudo wget /var/www/html/ ",
+                                "sudo wget -P /var/www/html/ ",
                                 {
                                     "Ref": "SiteSource"
                                 },
                                 "\n",
-                                "mv *.html /var/www/html/index.html\n",
                                 "mv /var/www/html/*.html /var/www/html/index.html\n",
                                 "chown -R www-data:www-data /var/www/html/\n",
                                 "chmod 600 /var/www/html/*\n",

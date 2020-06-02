@@ -71,8 +71,7 @@
         "SiteSource": {
             "Description": "URL do código fonte do site",
             "Type": "String",
-            "MinLength": "5",
-            "AllowedPattern": "^[a-zA-Z0-9]*$:/."
+            "MinLength": "5"
         }
     },
     "Mappings": {

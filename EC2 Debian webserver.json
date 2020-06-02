@@ -69,7 +69,7 @@
             "ConstraintDescription": "Deve ser um tipo válido de instância ec2."
         },
         "SiteSource": {
-            "Description": "URL do código fonte do site",
+            "Description": "URL do codigo fonte do site",
             "Type": "String",
             "MinLength": "5"
         }
@@ -442,15 +442,16 @@
                             "",
                             [
                                 "#!/bin/bash -xe\n",
-                                "apt-get update\n",
-                                "apt-get install -y python-pip apache2\n",
-                                "pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
-                                "rm /var/www/html/* \n",
-                                "wget /var/www/html/ ",
+                                "sudo apt-get update\n",
+                                "sudo apt-get install -y python-pip apache2\n",
+                                "sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+                                "sudo rm /var/www/html/* \n",
+                                "sudo wget /var/www/html/ ",
                                 {
                                     "Ref": "SiteSource"
                                 },
                                 "\n",
+                                "mv *.html /var/www/html/index.html\n",
                                 "mv /var/www/html/*.html /var/www/html/index.html\n",
                                 "chown -R www-data:www-data /var/www/html/\n",
                                 "chmod 600 /var/www/html/*\n",

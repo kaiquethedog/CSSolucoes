@@ -314,7 +314,116 @@
         }
     },
     "Metadata": {
-        "AWS::CloudFormation::Init": {
+        "AWS::CloudFormation::Designer": {
+            "58185fff-af32-4488-9b05-db170bd932fc": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 320,
+                    "y": 120
+                },
+                "z": 0,
+                "embeds": [],
+                "isassociatedwith": [
+                    "b7a2abe5-2f18-40e5-8532-8b378bdb1918"
+                ]
+            },
+            "b7a2abe5-2f18-40e5-8532-8b378bdb1918": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 480,
+                    "y": 120
+                },
+                "z": 0,
+                "embeds": []
+            },
+            "a7d848d7-49a8-4351-aa6a-66f61e0f4eb1": {
+                "source": {
+                    "id": "58185fff-af32-4488-9b05-db170bd932fc"
+                },
+                "target": {
+                    "id": "b7a2abe5-2f18-40e5-8532-8b378bdb1918"
+                },
+                "z": 1
+            }
+        }
+    },
+    "Resources": {
+        "WebServer": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "AWSRegionArch2AMI",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        {
+                            "Fn::FindInMap": [
+                                "AWSInstanceType2Arch",
+                                {
+                                    "Ref": "InstanceType"
+                                },
+                                "Arch"
+                            ]
+                        }
+                    ]
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -xe\n",
+                                "apt-get update\n",
+                                "apt-get install -y python-pip apache2\n",
+                                "pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+                                "rm /var/www/html/* \n",
+                                " wget -P /var/www/html/ ",
+                                {
+                                    "Ref": "SiteSource"
+                                },
+                                "\n",
+                                "mv /var/www/html/*.html /var/www/html/index.html\n",
+                                "chown -R www-data:www-data /var/www/html/\n",
+                                "chmod 600 /var/www/html/*\n",
+                                "# Install the files and packages from the metadata\n",
+                                "/opt/aws/bin/cfn-init -v ",
+                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                "         --resource WebServerInstance ",
+                                "         --configsets InstallAndRun ",
+                                "         --region ", { "Ref" : "AWS::Region" }, "\n",
+                                "# Signal the status from cfn-init\n",
+                                "sudo /opt/aws/bin/cfn-signal -e $? ",
+                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                "         --resource WebServerInstance ",
+                                "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                            ]
+                        ]
+                    }
+      },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "SecGRP"
+                    }
+                ]
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "58185fff-af32-4488-9b05-db170bd932fc"
+                },
+                        "AWS::CloudFormation::Init": {
             "configSets": {
                 "InstallAndRun": [
                     "Install"
@@ -445,121 +554,7 @@
                     }
                 }
             }
-        },
-        "AWS::CloudFormation::Designer": {
-            "58185fff-af32-4488-9b05-db170bd932fc": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 320,
-                    "y": 120
-                },
-                "z": 0,
-                "embeds": [],
-                "isassociatedwith": [
-                    "b7a2abe5-2f18-40e5-8532-8b378bdb1918"
-                ]
-            },
-            "b7a2abe5-2f18-40e5-8532-8b378bdb1918": {
-                "size": {
-                    "width": 60,
-                    "height": 60
-                },
-                "position": {
-                    "x": 480,
-                    "y": 120
-                },
-                "z": 0,
-                "embeds": []
-            },
-            "a7d848d7-49a8-4351-aa6a-66f61e0f4eb1": {
-                "source": {
-                    "id": "58185fff-af32-4488-9b05-db170bd932fc"
-                },
-                "target": {
-                    "id": "b7a2abe5-2f18-40e5-8532-8b378bdb1918"
-                },
-                "z": 1
-            }
         }
-    },
-    "Resources": {
-        "WebServer": {
-            "Type": "AWS::EC2::Instance",
-            "Properties": {
-                "ImageId": {
-                    "Fn::FindInMap": [
-                        "AWSRegionArch2AMI",
-                        {
-                            "Ref": "AWS::Region"
-                        },
-                        {
-                            "Fn::FindInMap": [
-                                "AWSInstanceType2Arch",
-                                {
-                                    "Ref": "InstanceType"
-                                },
-                                "Arch"
-                            ]
-                        }
-                    ]
-                },
-                "InstanceType": {
-                    "Ref": "InstanceType"
-                },
-                "KeyName": {
-                    "Ref": "KeyName"
-                },
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash -xe\n",
-                                "sudo apt-get update\n",
-                                "sudo apt-get install -y python-pip apache2\n",
-                                "sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
-                                "sudo rm /var/www/html/* \n",
-                                "sudo wget -P /var/www/html/ ",
-                                {
-                                    "Ref": "SiteSource"
-                                },
-                                "\n",
-                                "mv /var/www/html/*.html /var/www/html/index.html\n",
-                                "chown -R www-data:www-data /var/www/html/\n",
-                                "chmod 600 /var/www/html/*\n",
-                                "# Install the files and packages from the metadata\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ", { "Ref" : "AWS::StackName" },
-                                "         --resource WebServerInstance ",
-                                "         --configsets InstallAndRun ",
-                                "         --region ", { "Ref" : "AWS::Region" }, "\n",
-                                "# Signal the status from cfn-init\n",
-                                "/opt/aws/bin/cfn-signal -e $? ",
-                                "         --stack ", { "Ref" : "AWS::StackName" },
-                                "         --resource WebServerInstance ",
-                                "         --region ", { "Ref" : "AWS::Region" }, "\n"
-                            ]
-                        ]
-                    }
-                },
-    "CreationPolicy" : {
-        "ResourceSignal" : {
-          "Timeout" : "PT5M"
-        }
-      },
-                "SecurityGroupIds": [
-                    {
-                        "Ref": "SecGRP"
-                    }
-                ]
-            },
-            "Metadata": {
-                "AWS::CloudFormation::Designer": {
-                    "id": "58185fff-af32-4488-9b05-db170bd932fc"
-                }
             }
         },
         "SecGRP": {

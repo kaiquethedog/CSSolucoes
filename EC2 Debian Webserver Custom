@@ -530,34 +530,26 @@
                                 "mv /var/www/html/*.html /var/www/html/index.html\n",
                                 "chown -R www-data:www-data /var/www/html/\n",
                                 "chmod 600 /var/www/html/*\n",
-                                "/usr/local/bin/cfn-init -v ",
-                                "         --stack ",
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                "         --resource WebServer ",
+                                "# Install the files and packages from the metadata\n",
+                                "/opt/aws/bin/cfn-init -v ",
+                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                "         --resource WebServerInstance ",
                                 "         --configsets InstallAndRun ",
-                                "         --region ",
-                                {
-                                    "Ref": "AWS::Region"
-                                },
-                                "\n",
+                                "         --region ", { "Ref" : "AWS::Region" }, "\n",
                                 "# Signal the status from cfn-init\n",
-                                "/usr/local/bin/cfn-signal -e $? ",
-                                "         --stack ",
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                "         --resource WebServer ",
-                                "         --region ",
-                                {
-                                    "Ref": "AWS::Region"
-                                },
-                                "\n"
+                                "/opt/aws/bin/cfn-signal -e $? ",
+                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                "         --resource WebServerInstance ",
+                                "         --region ", { "Ref" : "AWS::Region" }, "\n"
                             ]
                         ]
                     }
                 },
+    "CreationPolicy" : {
+        "ResourceSignal" : {
+          "Timeout" : "PT5M"
+        }
+      },
                 "SecurityGroupIds": [
                     {
                         "Ref": "SecGRP"

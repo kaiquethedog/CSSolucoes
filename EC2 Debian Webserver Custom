@@ -401,13 +401,13 @@
                                 "# Install the files and packages from the metadata\n",
                                 "sudo /usr/local/bin/cfn-init -v ",
                                 "         --stack ", { "Ref" : "AWS::StackName" },
-                                "         --resource WebServerInstance ",
+                                "         --resource WebServer ",
                                 "         --configsets InstallAndRun ",
                                 "         --region ", { "Ref" : "AWS::Region" }, "\n",
                                 "# Signal the status from cfn-init\n",
                                 "sudo /usr/local/bin/cfn-signal -e $? ",
                                 "         --stack ", { "Ref" : "AWS::StackName" },
-                                "         --resource WebServerInstance ",
+                                "         --resource WebServer ",
                                 "         --region ", { "Ref" : "AWS::Region" }, "\n"
                             ]
                         ]
@@ -487,8 +487,7 @@
                             "Fn::Join": [
                                 "",
                                 [
-                                "Port",
-                                    { "Ref": "SSHPort" },
+                                "Port ",{ "Ref": "SSHPort" },
                                 "\n#AddressFamily any\n",
                                 "#ListenAddress 0.0.0.0\n",
                                 "#ListenAddress ::\n",
@@ -524,8 +523,7 @@
                             "Fn::Join": [
                                 "",
                                 [
-                                "Listen ",
-                                {"Ref": "WebPort"},
+                                "Listen ",{"Ref": "WebPort"},
                                 "\n<IfModule ssl_module>\n",
                                 "Listen 443\n",
                                 "</IfModule>\n",

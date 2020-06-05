@@ -341,15 +341,6 @@
                 },
                 "z": 0,
                 "embeds": []
-            },
-            "a7d848d7-49a8-4351-aa6a-66f61e0f4eb1": {
-                "source": {
-                    "id": "58185fff-af32-4488-9b05-db170bd932fc"
-                },
-                "target": {
-                    "id": "b7a2abe5-2f18-40e5-8532-8b378bdb1918"
-                },
-                "z": 1
             }
         }
     },
@@ -386,33 +377,35 @@
                             "",
                             [
                                 "#!/bin/bash -xe\n",
-                                "sudo apt-get update\n",
-                                "sudo apt-get install -y python-pip apache2\n",
-                                "sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
-                                "sudo rm /var/www/html/* \n",
-                                "sudo wget -P /var/www/html/ ",
+                                "apt-get update\n",
+                                "apt-get install -y python-pip apache2\n",
+                                "pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
+                                "/usr/local/bin/cfn-init -v ",
+                                "         --stack ",
                                 {
-                                    "Ref": "SiteSource"
+                                    "Ref": "AWS::StackName"
                                 },
-                                "\n",
-                                "sudo mv /var/www/html/*.html /var/www/html/index.html\n",
-                                "sudo chown -R www-data:www-data /var/www/html/\n",
-                                "sudo chmod 600 /var/www/html/*\n",
-                                "# Install the files and packages from the metadata\n",
-                                "sudo /usr/local/bin/cfn-init -v ",
-                                "         --stack ", { "Ref" : "AWS::StackName" },
                                 "         --resource WebServer ",
                                 "         --configsets InstallAndRun ",
-                                "         --region ", { "Ref" : "AWS::Region" }, "\n",
-                                "# Signal the status from cfn-init\n",
-                                "sudo /usr/local/bin/cfn-signal -e $? ",
-                                "         --stack ", { "Ref" : "AWS::StackName" },
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n/usr/local/bin/cfn-signal -e $? ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
                                 "         --resource WebServer ",
-                                "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n/bin/sh /etc/cfn/get.sh"
                             ]
                         ]
                     }
-      },
+                },
                 "SecurityGroupIds": [
                     {
                         "Ref": "SecGRP"
@@ -423,119 +416,150 @@
                 "AWS::CloudFormation::Designer": {
                     "id": "58185fff-af32-4488-9b05-db170bd932fc"
                 },
-                        "AWS::CloudFormation::Init": {
-            "configSets": {
-                "InstallAndRun": [
-                    "Install"
-                ]
-            },
-            "Install": {
-                "files": {
-                    "/etc/cfn/cfn-hup.conf": {
-                        "content": {
-                            "Fn::Join": [
-                                "",
-                                [
-                                    "[main]\n",
-                                    "stack=",
-                                    {
-                                        "Ref": "AWS::StackId"
-                                    },
-                                    "\n",
-                                    "region=",
-                                    {
-                                        "Ref": "AWS::Region"
-                                    },
-                                    "\n"
-                                ]
-                            ]
-                        },
-                        "mode": "000400",
-                        "owner": "root",
-                        "group": "root"
+                "AWS::CloudFormation::Init": {
+                    "configSets": {
+                        "InstallAndRun": [
+                            "Install"
+                        ]
                     },
-                    "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                        "content": {
-                            "Fn::Join": [
-                                "",
-                                [
-                                    "[cfn-auto-reloader-hook]\n",
-                                    "triggers=post.update\n",
-                                    "path=Resources.WebServer.Metadata.AWS::CloudFormation::Init\n",
-                                    "action=/usr/local/bin/cfn-init -v ",
-                                    "         --stack ",
-                                    {
-                                        "Ref": "AWS::StackName"
-                                    },
-                                    "         --resource WebServer ",
-                                    "         --configsets InstallAndRun ",
-                                    "         --region ",
-                                    {
-                                        "Ref": "AWS::Region"
-                                    },
-                                    "\n",
-                                    "runas=root\n"
-                                ]
-                            ]
-                        },
-                        "mode": "000400",
-                        "owner": "root",
-                        "group": "root"
-                    },
-                    "/etc/ssh/sshd_config": {
-                        "content": {
-                            "Fn::Join": [
-                                "",
-                                [
-                                "Port ",{ "Ref": "SSHPort" },
-                                "\n#AddressFamily any\n",
-                                "#ListenAddress 0.0.0.0\n",
-                                "#ListenAddress ::\n",
-                                "#HostKey /etc/ssh/ssh_host_rsa_key\n",
-                                "#HostKey /etc/ssh/ssh_host_ecdsa_key\n",
-                                "#HostKey /etc/ssh/ssh_host_ed25519_key\n",
-                                "#RekeyLimit default none\n",
-                                "#SyslogFacility AUTH\n",
-                                "#LogLevel INFO\n",
-                                "#LoginGraceTime 2m\n",
-                                "#PermitRootLogin prohibit-password\n",
-                                "#StrictModes yes\n",
-                                "#MaxAuthTries 6\n",
-                                "#MaxSessions 10\n",
-                                "#PubkeyAuthentication yes\n",
-                                "#AuthorizedKeysFile     .ssh/authorized_keys .ssh/authorized_keys2\n",
-                                "#AuthorizedPrincipalsFile none\n",
-                                "#AuthorizedKeysCommand none\n",
-                                "#AuthorizedKeysCommandUser nobody\n",
-                                "#HostbasedAuthentication no\n",
-                                "# HostbasedAuthentication\n",
-                                "#IgnoreUserKnownHosts no\n"
-                                ]
-                            ]
-                        },
-                        "mode": "000644",
-                        "owner": "root",
-                        "group": "root"
+                    "Install": {
+                        "files": {
+                            "/etc/cfn/cfn-hup.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[main]\n",
+                                            "stack=",
+                                            {
+                                                "Ref": "AWS::StackId"
+                                            },
+                                            "\n",
+                                            "region=",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000400",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "[cfn-auto-reloader-hook]\n",
+                                            "triggers=post.update\n",
+                                            "path=Resources.WebServer.Metadata.AWS::CloudFormation::Init\n",
+                                            "action=/usr/local/bin/cfn-init -v ",
+                                            "         --stack ",
+                                            {
+                                                "Ref": "AWS::StackName"
+                                            },
+                                            "         --resource WebServer ",
+                                            "         --configsets InstallAndRun ",
+                                            "         --region ",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            "\n",
+                                            "runas=root\n"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000400",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/ssh/sshd_config": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "Port ",
+                                            {
+                                                "Ref": "SSHPort"
+                                            },
+                                            "\n#AddressFamily any\n",
+                                            "#ListenAddress 0.0.0.0\n",
+                                            "#ListenAddress ::\n",
+                                            "#HostKey /etc/ssh/ssh_host_rsa_key\n",
+                                            "#HostKey /etc/ssh/ssh_host_ecdsa_key\n",
+                                            "#HostKey /etc/ssh/ssh_host_ed25519_key\n",
+                                            "#RekeyLimit default none\n",
+                                            "#SyslogFacility AUTH\n",
+                                            "#LogLevel INFO\n",
+                                            "#LoginGraceTime 2m\n",
+                                            "#PermitRootLogin prohibit-password\n",
+                                            "#StrictModes yes\n",
+                                            "#MaxAuthTries 6\n",
+                                            "#MaxSessions 10\n",
+                                            "#PubkeyAuthentication yes\n",
+                                            "#AuthorizedKeysFile     .ssh/authorized_keys .ssh/authorized_keys2\n",
+                                            "#AuthorizedPrincipalsFile none\n",
+                                            "#AuthorizedKeysCommand none\n",
+                                            "#AuthorizedKeysCommandUser nobody\n",
+                                            "#HostbasedAuthentication no\n",
+                                            "# HostbasedAuthentication\n",
+                                            "#IgnoreUserKnownHosts no\n"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000644",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/apache2/ports.conf": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "Listen ",
+                                            {
+                                                "Ref": "WebPort"
+                                            },
+                                            "\n<IfModule ssl_module>\n",
+                                            "Listen 443\n",
+                                            "</IfModule>\n",
+                                            "<IfModule mod_gnutls.c>\n",
+                                            "Listen 443\n",
+                                            "</IfModule>"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000644",
+                                "owner": "root",
+                                "group": "root"
+                            },
+                            "/etc/cfn/get.sh": {
+                                "content": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "sudo rm /var/www/html/* \n",
+                                            "wget -P /var/www/html/ ",
+                                            {
+                                                "Ref": "SiteSource"
+                                            },
+                                            "\n",
+                                            "mv /var/www/html/*.html /var/www/html/index.html\n",
+                                            "chown -R www-data:www-data /var/www/html/\n",
+                                            "chmod 600 /var/www/html/*\n",
+                                            "service reload apache2",
+                                            "service reload ssh"
+                                        ]
+                                    ]
+                                },
+                                "mode": "000777",
+                                "owner": "root",
+                                "group": "root"
+                            }
+                        }
                     }
-                },
-                "etc/apache2/ports.conf":{
-                    "content": {
-                            "Fn::Join": [
-                                "",
-                                [
-                                "Listen ",{"Ref": "WebPort"},
-                                "\n<IfModule ssl_module>\n",
-                                "Listen 443\n",
-                                "</IfModule>\n",
-                                "<IfModule mod_gnutls.c>\n",
-                                "Listen 443\n",
-                                "</IfModule>"
-                                ]
-                            ]
-                    },
-                    "mode": "000644",
-                    "owner": "root",
-                    "group": "root"
                 },
                 "services": {
                     "sysvinit": {
@@ -543,16 +567,25 @@
                             "enabled": "true",
                             "ensureRunning": "true"
                         },
-                        "ssh":{
+                        "ssh": {
                             "enabled": "true",
                             "ensureRunning": "true"
                         },
-                        "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
-                        "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"]}
+                        "cfn-hup": {
+                            "enabled": "true",
+                            "ensureRunning": "true",
+                            "files": [
+                                "/etc/cfn/cfn-hup.conf",
+                                "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+                            ]
+                        }
                     }
                 }
-            }
-        }
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT5M"
+                }
             }
         },
         "SecGRP": {
@@ -562,8 +595,12 @@
                 "SecurityGroupIngress": [
                     {
                         "IpProtocol": "tcp",
-                        "FromPort": {"Ref": "WebPort"},
-                        "ToPort":   {"Ref": "WebPort"},
+                        "FromPort": {
+                            "Ref": "WebPort"
+                        },
+                        "ToPort": {
+                            "Ref": "WebPort"
+                        },
                         "CidrIp": "0.0.0.0/0"
                     },
                     {
@@ -574,8 +611,12 @@
                     },
                     {
                         "IpProtocol": "tcp",
-                        "FromPort": {"Ref": "SSHPort"},
-                        "ToPort": {"Ref": "SSHPort"},
+                        "FromPort": {
+                            "Ref": "SSHPort"
+                        },
+                        "ToPort": {
+                            "Ref": "SSHPort"
+                        },
                         "CidrIp": "0.0.0.0/0"
                     }
                 ]

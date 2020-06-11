@@ -601,6 +601,7 @@
                     "packages" : {
                         "yum" : {
                             "httpd"        : []
+}
                         },
                         "files": {
                             "/etc/cfn/cfn-hup.conf": {
@@ -654,66 +655,6 @@
                                 "owner": "root",
                                 "group": "root"
                             },
-                            "/etc/ssh/sshd_config": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "Port ",
-                                            {
-                                                "Ref": "SSHPort"
-                                            },
-                                            "\n#AddressFamily any\n",
-                                            "#ListenAddress 0.0.0.0\n",
-                                            "#ListenAddress ::\n",
-                                            "#HostKey /etc/ssh/ssh_host_rsa_key\n",
-                                            "#HostKey /etc/ssh/ssh_host_ecdsa_key\n",
-                                            "#HostKey /etc/ssh/ssh_host_ed25519_key\n",
-                                            "#RekeyLimit default none\n",
-                                            "#SyslogFacility AUTH\n",
-                                            "#LogLevel INFO\n",
-                                            "#LoginGraceTime 2m\n",
-                                            "#PermitRootLogin prohibit-password\n",
-                                            "#StrictModes yes\n",
-                                            "#MaxAuthTries 6\n",
-                                            "#MaxSessions 10\n",
-                                            "#PubkeyAuthentication yes\n",
-                                            "#AuthorizedKeysFile     .ssh/authorized_keys .ssh/authorized_keys2\n",
-                                            "#AuthorizedPrincipalsFile none\n",
-                                            "#AuthorizedKeysCommand none\n",
-                                            "#AuthorizedKeysCommandUser nobody\n",
-                                            "#HostbasedAuthentication no\n",
-                                            "# HostbasedAuthentication\n",
-                                            "#IgnoreUserKnownHosts no\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000644",
-                                "owner": "root",
-                                "group": "root"
-                            },
-                            "/etc/apache2/ports.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "Listen ",
-                                            {
-                                                "Ref": "WebPort"
-                                            },
-                                            "\n<IfModule ssl_module>\n",
-                                            "Listen 443\n",
-                                            "</IfModule>\n",
-                                            "<IfModule mod_gnutls.c>\n",
-                                            "Listen 443\n",
-                                            "</IfModule>"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000644",
-                                "owner": "root",
-                                "group": "root"
-                            },
                             "/etc/cfn/get.sh": {
                                 "content": {
                                     "Fn::Join": [
@@ -726,10 +667,16 @@
                                             },
                                             "\n",
                                             "mv /var/www/html/*.html /var/www/html/index.html\n",
-                                            "chown -R www-data:www-data /var/www/html/\n",
+                                            "chown -R apache:apache /var/www/html/\n",
                                             "chmod 600 /var/www/html/*\n",
-                                            "service reload apache2",
-                                            "service reload ssh"
+                                            "echo ",
+                                            "\"Listen ",{"Ref": "WebPort"},
+                                            "\" >> /etc/httpd/conf/httpd.conf\n",
+					    "echo ",
+					    "\"Port ",{"Ref": "SSHPort"},
+					    "\" >> /etc/ssh/sshd_config\n",
+                                            "service reload httpd\n",
+                                            "service reload sshd"
                                         ]
                                     ]
                                 },
@@ -738,11 +685,11 @@
                                 "group": "root"
                             }
                         }
-                    }
+}
                 },
                 "services": {
                     "sysvinit": {
-                        "apache2": {
+                        "httpd": {
                             "enabled": "true",
                             "ensureRunning": "true"
                         },
@@ -807,4 +754,4 @@
             }
         }
     }
-}
+    }

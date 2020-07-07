@@ -1,0 +1,61 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Metadata": {
+        "AWS::CloudFormation::Designer": {
+            "2467fe4d-b291-4c3b-a510-ac871f7c95db": {
+                "size": {
+                    "width": 60,
+                    "height": 60
+                },
+                "position": {
+                    "x": 110.58668923118431,
+                    "y": 2308.3852268026403
+                },
+                "z": 0,
+                "embeds": []
+            }
+        }
+    },
+    "Resources": {
+        "Function": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Role": { "Ref" : "Role" },
+                "Code": {
+                    "S3Bucket": { "Ref" : "S3Bucket" },
+                    "S3Key": { "Ref" : "S3Key" },
+                    "Runtime": { "Ref" : "Runtime" }
+                }
+            },
+            "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                    "id": "2467fe4d-b291-4c3b-a510-ac871f7c95db"
+                }
+            }
+        }
+    },
+    "Parameters": {
+        "Role": {
+            "Type": "String",
+            "Default": "arn:aws:iam::",
+            "Description": "Preencher com o ARN referente da role que sera utilizada para executar o script."
+        },
+        "S3Bucket" : {
+            "Type" : "String",
+            "Default" : "my-bucket",
+            "Description" : "Preencher com o nome referente ao seu bucket do S3 da AWS."
+        },
+        "S3Key" : {
+            "Type" : "String",
+            "Default" : "function.zip",
+            "Description" : "Preencher com o nome referente ao objeto que sera executado dentro do bucket."
+        },
+        "Runtime" : {
+            "Type" : "String",
+            "AllowedValues" : ["nodejs12.x", "nodejs10.x", "python3.8", " python3.7", "python3.6", "python2.7", "ruby2.7", "ruby2.5", "java11", "java8", "go1.x", "dotnetcore3.1", "dotnetcore2.1", "provided"],
+            "Default" : "nodejs12.x",
+            "Description" : "Qual formato de execução do seu script"
+        }
+    }
+}

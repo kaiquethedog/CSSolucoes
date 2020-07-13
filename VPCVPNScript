@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  VPCMain:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref RangeCidr
+  VCGWMain:
+    Type: 'AWS::EC2::CustomerGateway'
+    Properties:
+      BgpAsn: '65000'
+      IpAddress: !Ref ClientIP
+      Type: ipsec.1
+  VPCVPNGateway:
+    Type: 'AWS::EC2::VPNGateway'
+    Properties:
+      Type: ipsec.1
+  VPC2GW:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpnGatewayId: !Ref VPCVPNGateway
+      VpcId: !Ref VPCMain
+  GW2CGW:
+    Type: 'AWS::EC2::VPNConnection'
+    Properties:
+      Type: ipsec.1
+      StaticRoutesOnly: true
+      VpnGatewayId: !Ref VPCVPNGateway
+      CustomerGatewayId: !Ref VCGWMain
+  RTTB1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPCMain
+  VpcCRP:
+    Type: 'AWS::EC2::VPNConnectionRoute'
+    Properties:
+      DestinationCidrBlock: !Ref ClientCIDR
+      VpnConnectionId: !Ref GW2CGW
+  RoutePropagation:
+    Type: 'AWS::EC2::VPNGatewayRoutePropagation'
+    Properties:
+      VpnGatewayId: !Ref VPCVPNGateway
+      RouteTableIds:
+        - !Ref RTTB1
+    DependsOn:
+      - GW2CGW
+Parameters:
+  RangeCidr:
+    Description: Range de ips validos para ser utilizado na VPC ex 0.0.0.0/0
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.0.0/16
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+  ClientIP:
+    Description: Ip publico que tera acesso a vpn
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 172.0.0.0
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x.
+  ClientCIDR:
+    Description: Ip publico que tera acesso a vpn
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 172.0.0.0/32
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/32.
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'

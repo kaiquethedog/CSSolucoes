@@ -54,7 +54,7 @@ Parameters:
   ClientIP:
     Description: Ip publico que tera acesso a vpn
     Type: String
-    MinLength: '9'
+    MinLength: '6'
     MaxLength: '18'
     Default: 0.0.0.0
     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x.
